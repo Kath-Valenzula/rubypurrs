@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.RubyPurrs" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">#E7F0F8</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_ruby_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.RubyPurrs" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@color/rp_azul_claro</item>
+    </style>
+</resources>
