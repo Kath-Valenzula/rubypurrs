@@ -38,7 +38,8 @@ class HomeVM(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             while (true) {
                 delay(60_000)
-                updatePet(ctx,
+                updatePet(
+                    ctx,
                     hunger = pet.hunger - 2,
                     energy = pet.energy - 1,
                     joy = pet.joy - 1
@@ -46,9 +47,10 @@ class HomeVM(app: Application) : AndroidViewModel(app) {
             }
         }
     }
-    fun feed()  { viewModelScope.launch { updatePet(ctx, hunger = pet.hunger + 15); narrator.speak("Ñam ñam"); haptics.ok() } }
-    fun play()  { viewModelScope.launch { updatePet(ctx, joy = pet.joy + 12, energy = pet.energy - 6); narrator.speak("¡A jugar!"); haptics.ok() } }
-    fun rest()  { viewModelScope.launch { updatePet(ctx, energy = pet.energy + 15); narrator.speak("A dormir un rato"); haptics.ok() } }
+
+    fun feed()   { viewModelScope.launch { updatePet(ctx, hunger = pet.hunger + 15); narrator.speak("Ñam ñam"); haptics.ok() } }
+    fun play()   { viewModelScope.launch { updatePet(ctx, joy = pet.joy + 12, energy = pet.energy - 6); narrator.speak("¡A jugar!"); haptics.ok() } }
+    fun rest()   { viewModelScope.launch { updatePet(ctx, energy = pet.energy + 15); narrator.speak("A dormir un rato"); haptics.ok() } }
     fun petting(){ viewModelScope.launch { updatePet(ctx, joy = pet.joy + 10); narrator.speak("Purrr"); haptics.ok() } }
 }
 
@@ -63,19 +65,26 @@ fun HomeScreen(
     var purring by remember { mutableStateOf(false) }
     val purrOnce = rememberPurrOneShot()
 
-    // Lottie
+    // Lottie decorativa (ahora sí se dibuja)
     val comp by rememberLottieComposition(LottieCompositionSpec.Asset("lottie/heart_pulse.json"))
     val anim by animateLottieCompositionAsState(comp, iterations = LottieConstants.IterateForever)
 
     Column(
-        Modifier.fillMaxSize().padding(24.dp),
+        Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Image(
                 painter = painterResource(R.drawable.bg_watercolor_blue),
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(140.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp),
                 contentScale = ContentScale.Crop
             )
             Spacer(Modifier.height(12.dp))
@@ -92,13 +101,24 @@ fun HomeScreen(
                     },
                 contentScale = ContentScale.Fit
             )
-            // Capa de purr continuo
+
+            // Animación visible (elimina el warning de 'anim is never used')
+            LottieAnimation(
+                composition = comp,
+                progress = { anim },
+                modifier = Modifier.size(48.dp)
+            )
+
+            // Capa de purr continuo mientras 'purring' sea true
             PurrLayer(play = purring)
-            // Apagar el loop tras ~1s
+            // Apaga el loop tras ~1s
             LaunchedEffect(purring) { if (purring) { delay(950); purring = false } }
 
             Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 StatChip("Hambre",  vm.pet.hunger)
                 StatChip("Energía", vm.pet.energy)
                 StatChip("Ánimo",   vm.pet.joy)
@@ -106,19 +126,72 @@ fun HomeScreen(
         }
 
         Column {
-            Button(onClick = vm::feed,  modifier = Modifier.fillMaxWidth().height(56.dp).semantics { contentDescription = "Dar de comer" }) { Text("Dar de comer") }
+            Button(
+                onClick = vm::feed,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics { contentDescription = "Dar de comer" }
+            ) { Text("Dar de comer") }
+
             Spacer(Modifier.height(8.dp))
-            Button(onClick = vm::petting, modifier = Modifier.fillMaxWidth().height(56.dp).semantics { contentDescription = "Caricias" })   { Text("Caricias") }
+
+            Button(
+                onClick = vm::petting,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics { contentDescription = "Caricias" }
+            ) { Text("Caricias") }
+
             Spacer(Modifier.height(8.dp))
-            Button(onClick = vm::play,  modifier = Modifier.fillMaxWidth().height(56.dp).semantics { contentDescription = "Jugar" })      { Text("Jugar") }
+
+            Button(
+                onClick = vm::play,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics { contentDescription = "Jugar" }
+            ) { Text("Jugar") }
+
             Spacer(Modifier.height(8.dp))
-            Button(onClick = vm::rest,  modifier = Modifier.fillMaxWidth().height(56.dp).semantics { contentDescription = "Descansar" })  { Text("Descansar") }
+
+            Button(
+                onClick = vm::rest,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .semantics { contentDescription = "Descansar" }
+            ) { Text("Descansar") }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(onClick = goFollow, modifier = Modifier.weight(1f).height(56.dp).semantics { contentDescription = "Mini-juego Seguir a Ruby" }) { Text("Seguir a Ruby") }
-            OutlinedButton(onClick = goMouse,  modifier = Modifier.weight(1f).height(56.dp).semantics { contentDescription = "Mini-juego Ratón" })          { Text("Atrapar ratón") }
-            OutlinedButton(onClick = goPet,    modifier = Modifier.weight(1f).height(56.dp).semantics { contentDescription = "Mini-juego Caricias" })       { Text("Caricias") }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedButton(
+                onClick = goFollow,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp)
+                    .semantics { contentDescription = "Mini-juego Seguir a Ruby" }
+            ) { Text("Seguir a Ruby") }
+
+            OutlinedButton(
+                onClick = goMouse,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp)
+                    .semantics { contentDescription = "Mini-juego Ratón" }
+            ) { Text("Atrapar ratón") }
+
+            OutlinedButton(
+                onClick = goPet,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp)
+                    .semantics { contentDescription = "Mini-juego Caricias" }
+            ) { Text("Caricias") }
         }
     }
 }
@@ -132,7 +205,7 @@ private fun StatChip(label: String, value: Int) {
         ) {
             Text(label, color = MaterialTheme.colorScheme.onSurface)
             LinearProgressIndicator(
-                progress = value.coerceIn(0, 100) / 100f,
+                progress = { value.coerceIn(0, 100) / 100f },
                 modifier = Modifier.width(140.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = Color.White
