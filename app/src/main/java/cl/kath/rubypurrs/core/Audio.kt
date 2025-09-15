@@ -1,67 +1,63 @@
 package cl.kath.rubypurrs.core
 
 import android.media.MediaPlayer
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import cl.kath.rubypurrs.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun MusicLayer(enabled: Boolean = true, volume: Float = 0.25f) {
+fun MusicLayer(volume: Float = 0.25f) {
     val ctx = LocalContext.current
-    val player = remember {
-        MediaPlayer.create(ctx, R.raw.theme_rubypurrs_loop).apply {
+    DisposableEffect(Unit) {
+        val mp = MediaPlayer.create(ctx, R.raw.theme_rubypurrs_loop).apply {
             isLooping = true
             setVolume(volume, volume)
+            start()
         }
+        onDispose { mp.release() }
     }
-    LaunchedEffect(enabled) {
-        if (enabled) {
-            if (!player.isPlaying) player.start()
-        } else {
-            if (player.isPlaying) player.pause()
-        }
-    }
-    DisposableEffect(Unit) { onDispose { player.release() } }
 }
 
 @Composable
-fun PurrLayer(play: Boolean, volume: Float = 0.5f) {
+fun PurrLayer(play: Boolean, volume: Float = 0.6f) {
     val ctx = LocalContext.current
-    val player = remember {
-        MediaPlayer.create(ctx, R.raw.purr_loop).apply {
+    // Esta key re-crea el player cuando cambia "play"
+    LaunchedEffect(play) { /* no-op, solo para clave de recomposición */ }
+
+    DisposableEffect(play) {
+        val player = MediaPlayer.create(ctx, R.raw.purr_loop).apply {
             isLooping = true
             setVolume(volume, volume)
+            if (play) start()
         }
+        onDispose { player.release() }
     }
-    LaunchedEffect(play) {
-        if (play) {
-            if (!player.isPlaying) player.start()
-        } else {
-            if (player.isPlaying) player.pause()
-        }
-    }
-    DisposableEffect(Unit) { onDispose { player.release() } }
 }
 
 @Composable
 fun rememberPurrOneShot(): (Long) -> Unit {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    val player = remember {
-        MediaPlayer.create(ctx, R.raw.purr_loop).apply {
-            isLooping = true
-            setVolume(0.6f, 0.6f)
-        }
-    }
-    DisposableEffect(Unit) { onDispose { player.release() } }
     return remember {
         { ms: Long ->
             scope.launch {
-                if (!player.isPlaying) player.start()
-                delay(ms)
-                if (player.isPlaying) player.pause()
+                val mp = MediaPlayer.create(ctx, R.raw.purr_loop).apply {
+                    isLooping = false
+                    setVolume(0.6f, 0.6f)
+                }
+                try {
+                    mp.start()
+                    delay(ms)
+                } finally {
+                    runCatching { mp.stop() }
+                    mp.release()
+                }
             }
         }
     }
