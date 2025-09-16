@@ -59,13 +59,12 @@ fun HomeScreen(
     goFollow: () -> Unit,
     goMouse:  () -> Unit,
     goPet:    () -> Unit,
+    goAccess: () -> Unit,        // ← nuevo
     vm: HomeVM = viewModel()
 ) {
-    // Audio
     var purring by remember { mutableStateOf(false) }
     val purrOnce = rememberPurrOneShot()
 
-    // Lottie decorativa (ahora sí se dibuja)
     val comp by rememberLottieComposition(LottieCompositionSpec.Asset("lottie/heart_pulse.json"))
     val anim by animateLottieCompositionAsState(comp, iterations = LottieConstants.IterateForever)
 
@@ -102,16 +101,13 @@ fun HomeScreen(
                 contentScale = ContentScale.Fit
             )
 
-            // Animación visible (elimina el warning de 'anim is never used')
             LottieAnimation(
                 composition = comp,
                 progress = { anim },
                 modifier = Modifier.size(48.dp)
             )
 
-            // Capa de purr continuo mientras 'purring' sea true
             PurrLayer(play = purring)
-            // Apaga el loop tras ~1s
             LaunchedEffect(purring) { if (purring) { delay(950); purring = false } }
 
             Spacer(Modifier.height(8.dp))
@@ -156,13 +152,14 @@ fun HomeScreen(
 
             Spacer(Modifier.height(8.dp))
 
+            // Botón de Accesibilidad
             Button(
-                onClick = vm::rest,
+                onClick = goAccess,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .semantics { contentDescription = "Descansar" }
-            ) { Text("Descansar") }
+                    .semantics { contentDescription = "Abrir Modo Accesibilidad" }
+            ) { Text("Modo Accesibilidad") }
         }
 
         Row(
